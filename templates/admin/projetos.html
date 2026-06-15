@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Projetos (Admin){% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold">Projetos</h1>
+  <p class="text-slate-500 text-sm">Crie projetos importando uma planilha Excel.</p>
+</div>
+
+<div class="bg-white rounded-2xl border border-slate-200 p-6 mb-8">
+  <h2 class="font-semibold mb-1">Importar planilha</h2>
+  <p class="text-sm text-slate-500 mb-4">
+    Colunas: <span class="font-medium">Número do projeto</span>, <span class="font-medium">Latitude</span>,
+    <span class="font-medium">Longitude</span>, <span class="font-medium">Região</span>.
+    Linhas com o mesmo número viram um único projeto.
+  </p>
+  <form method="post" enctype="multipart/form-data" class="flex flex-col sm:flex-row gap-3">
+    <input type="file" name="arquivo" accept=".xlsx" required
+           class="flex-1 text-sm border border-slate-300 rounded-lg px-3 py-2 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-brand-50 file:text-brand-700">
+    <button class="px-5 py-2 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium">Criar projetos</button>
+  </form>
+</div>
+
+<div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-50 text-slate-500 text-left">
+      <tr>
+        <th class="px-5 py-3 font-medium">Projeto</th>
+        <th class="px-5 py-3 font-medium">Região</th>
+        <th class="px-5 py-3 font-medium">Postes</th>
+        <th class="px-5 py-3 font-medium">Preenchidos</th>
+        <th class="px-5 py-3 font-medium">Status</th>
+        <th class="px-5 py-3 font-medium text-right">Ações</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100">
+      {% for p in projetos %}
+      <tr class="hover:bg-slate-50">
+        <td class="px-5 py-3 font-semibold">{{ p.numero }}</td>
+        <td class="px-5 py-3">{{ p.regiao }}</td>
+        <td class="px-5 py-3">{{ p.total_postes }}</td>
+        <td class="px-5 py-3">{{ p.preenchidos }}</td>
+        <td class="px-5 py-3">
+          <span class="px-2 py-1 rounded-full text-xs font-medium
+            {{ 'bg-slate-100 text-slate-500' if p.status=='encerrado' else 'bg-emerald-50 text-emerald-700' }}">
+            {{ 'Encerrado' if p.status=='encerrado' else 'Aberto' }}
+          </span>
+        </td>
+        <td class="px-5 py-3 text-right">
+          <a href="{{ url_for('tecnico_mapa', project_id=p.id) }}" class="text-brand-600 hover:underline mr-3">Mapa</a>
+          <form method="post" action="{{ url_for('admin_projeto_excluir', project_id=p.id) }}" class="inline"
+                onsubmit="return confirm('Excluir o projeto {{ p.numero }}?');">
+            <button class="text-rose-600 hover:underline">Excluir</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="px-5 py-10 text-center text-slate-400">Nenhum projeto criado ainda.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

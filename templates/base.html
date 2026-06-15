@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Grid Map Atlas{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/lucide-static@latest/font/lucide.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50:'#ecfdf5',100:'#d1fae5',500:'#10b981',600:'#059669',700:'#047857',900:'#064e3b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .nav-link.active { background:#059669; color:#fff; }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+{% if current_user.is_authenticated %}
+<header class="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Grid Map Atlas" class="w-9 h-9 object-contain">
+      <div>
+        <div class="font-semibold leading-tight text-white">Grid Map Atlas</div>
+        <div class="text-xs text-slate-400 leading-tight">{{ 'Administrador' if current_user.is_admin else 'Técnico' }}</div>
+      </div>
+    </div>
+    <nav class="flex items-center gap-1">
+      {% if current_user.is_admin %}
+        {% set links = [('admin_projetos','Projetos','folder'),('admin_dados','Dados','table-2'),('admin_usuarios','Usuários','users')] %}
+      {% else %}
+        {% set links = [('tecnico_projetos','Projetos','folder'),('tecnico_mapa','Mapa','map')] %}
+      {% endif %}
+      {% for ep, label, icon in links %}
+        <a href="{{ url_for(ep) }}"
+           class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 transition {{ 'active' if request.endpoint == ep else '' }}">
+          {{ label }}
+        </a>
+      {% endfor %}
+      <a href="{{ url_for('logout') }}" class="ml-2 px-3 py-2 rounded-lg text-sm font-medium text-rose-400 hover:bg-rose-950/30">Sair</a>
+    </nav>
+  </div>
+</header>
+{% endif %}
+
+<main class="{% block main_class %}max-w-7xl mx-auto px-4 py-6{% endblock %}">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="space-y-2 mb-4">
+        {% for cat, msg in messages %}
+          <div class="px-4 py-3 rounded-lg text-sm font-medium
+            {{ 'bg-emerald-50 text-emerald-700 border border-emerald-200' if cat=='success'
+               else 'bg-rose-50 text-rose-700 border border-rose-200' }}">
+            {{ msg }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+{% block scripts %}{% endblock %}
+</body>
+</html>

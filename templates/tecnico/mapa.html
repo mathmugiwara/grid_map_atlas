@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Mapa{% endblock %}
+{% block main_class %}{% endblock %}
+{% block head %}
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@maplibre/maplibre-gl-geocoder@1.5.0/dist/maplibre-gl-geocoder.css">
+<script src="https://unpkg.com/@maplibre/maplibre-gl-geocoder@1.5.0/dist/maplibre-gl-geocoder.min.js"></script>
+<style>
+  #map { position:absolute; inset:0; }
+  .map-wrap { position: relative; height: calc(100vh - 64px); }
+  .maplibregl-ctrl-geocoder { min-width: 260px; box-shadow: 0 10px 25px rgba(0,0,0,.12); border-radius: 12px; }
+  #geocoder-box { position:absolute; top:72px; left:16px; z-index:10; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="map-wrap">
+  <div id="map"></div>
+
+  {% if not projeto %}
+  <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+    <div class="bg-white/90 backdrop-blur px-6 py-4 rounded-2xl shadow text-center pointer-events-auto">
+      <p class="font-medium">Nenhum projeto selecionado</p>
+      <a href="{{ url_for('tecnico_projetos') }}" class="text-brand-600 text-sm hover:underline">Escolher um projeto</a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Top bar -->
+  {% if projeto %}
+  <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-white rounded-xl shadow-lg px-4 py-2 flex items-center gap-3">
+    <a href="{{ url_for('tecnico_projetos', regiao=projeto.regiao) }}" class="text-slate-400 hover:text-slate-700 text-sm">←</a>
+    <div>
+      <div class="text-xs text-slate-400 leading-tight">{{ projeto.regiao }}</div>
+      <div class="font-semibold leading-tight">Projeto {{ projeto.numero }}</div>
+    </div>
+    <span id="proj-status" class="px-2 py-1 rounded-full text-xs font-medium"></span>
+    <button id="btn-toggle-status" class="ml-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-brand-600 hover:bg-brand-700"></button>
+  </div>
+  {% endif %}
+
+  <!-- Tile switcher -->
+  <div class="absolute top-4 right-4 z-10 bg-white rounded-xl shadow-lg p-1 flex">
+    <button data-tile="osm" class="tile-btn px-3 py-1.5 rounded-lg text-sm font-medium">OSM</button>
+    <button data-tile="light" class="tile-btn px-3 py-1.5 rounded-lg text-sm font-medium">Branco</button>
+  </div>
+
+  <!-- Left sidebar (editar) -->
+  <aside id="sidebar" class="absolute top-0 left-0 h-full w-80 bg-white shadow-2xl z-20 transform -translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+      <div>
+        <div class="text-xs text-slate-400">Poste</div>
+        <div id="sb-title" class="font-semibold">—</div>
+      </div>
+      <button id="sb-close" class="text-slate-400 hover:text-slate-700 text-xl leading-none">×</button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-5 space-y-5">
+      <div>
+        <label class="block text-sm font-medium text-slate-600 mb-1">Observações</label>
+        <textarea id="sb-obs" rows="5"
+          class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none text-sm"
+          placeholder="Digite as observações..."></textarea>
+      </div>
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-sm font-medium text-slate-600">Fotos</label>
+          <span id="sb-foto-count" class="text-xs text-slate-400">0/3</span>
+        </div>
+        <div id="sb-fotos" class="grid grid-cols-3 gap-2"></div>
+        <label id="sb-foto-add" class="mt-2 flex items-center justify-center gap-2 w-full py-2.5 rounded-lg border-2 border-dashed border-slate-300 text-slate-500 text-sm cursor-pointer hover:border-brand-400 hover:text-brand-600">
+          + Adicionar foto
+          <input id="sb-foto-input" type="file" accept="image/*" class="hidden">
+        </label>
+      </div>
+    </div>
+    <div class="p-5 border-t border-slate-200">
+      <button id="sb-save" class="w-full py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium">Salvar</button>
+    </div>
+  </aside>
+
+  <!-- Modal -->
+  <div id="modal" class="fixed inset-0 z-30 hidden items-center justify-center bg-black/40">
+    <div class="bg-white rounded-2xl shadow-2xl w-72 p-5">
+      <div class="text-xs text-slate-400">Poste selecionado</div>
+      <div id="modal-title" class="font-semibold mb-4">—</div>
+      <div class="space-y-2">
+        <button id="modal-edit" class="w-full py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium">Editar</button>
+        <button id="modal-route" class="w-full py-2.5 rounded-lg border border-slate-300 hover:bg-slate-50 font-medium">Ver no mapa (rota)</button>
+        <button id="modal-cancel" class="w-full py-2 text-slate-400 hover:text-slate-600 text-sm">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const PROJECT_ID = {{ projeto.id if projeto else 'null' }};
+</script>
+<script src="{{ url_for('static', filename='js/mapa.js') }}"></script>
+{% endblock %}

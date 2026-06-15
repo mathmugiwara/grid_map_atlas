@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Usuários (Admin){% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold">Usuários</h1>
+  <p class="text-slate-500 text-sm">Crie ou edite as contas de acesso.</p>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-6">
+  <!-- Criar -->
+  <div class="bg-white rounded-2xl border border-slate-200 p-6">
+    <h2 class="font-semibold mb-4">Novo usuário</h2>
+    <form method="post" class="space-y-3">
+      <input type="hidden" name="action" value="create">
+      <div>
+        <label class="block text-sm text-slate-600 mb-1">Usuário</label>
+        <input name="username" required class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none">
+      </div>
+      <div>
+        <label class="block text-sm text-slate-600 mb-1">Senha</label>
+        <input name="password" type="text" required class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none">
+      </div>
+      <div>
+        <label class="block text-sm text-slate-600 mb-1">Perfil</label>
+        <select name="role" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none">
+          <option value="tecnico">Técnico</option>
+          <option value="admin">Administrador</option>
+        </select>
+      </div>
+      <button class="w-full py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium">Criar usuário</button>
+    </form>
+  </div>
+
+  <!-- Lista -->
+  <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 text-slate-500 text-left">
+        <tr>
+          <th class="px-5 py-3 font-medium">Usuário</th>
+          <th class="px-5 py-3 font-medium">Perfil</th>
+          <th class="px-5 py-3 font-medium text-right">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for u in usuarios %}
+        <tr>
+          <td class="px-5 py-3">
+            <form method="post" class="flex items-center gap-2" id="form-{{ u.id }}">
+              <input type="hidden" name="action" value="update">
+              <input type="hidden" name="user_id" value="{{ u.id }}">
+              <input name="username" value="{{ u.username }}" class="px-2 py-1.5 rounded-lg border border-slate-300 w-40">
+            </form>
+          </td>
+          <td class="px-5 py-3">
+            <select name="role" form="form-{{ u.id }}" class="px-2 py-1.5 rounded-lg border border-slate-300">
+              <option value="tecnico" {{ 'selected' if u.role=='tecnico' }}>Técnico</option>
+              <option value="admin" {{ 'selected' if u.role=='admin' }}>Administrador</option>
+            </select>
+            <input name="password" form="form-{{ u.id }}" placeholder="Nova senha (opcional)"
+                   class="ml-2 px-2 py-1.5 rounded-lg border border-slate-300 w-40">
+          </td>
+          <td class="px-5 py-3 text-right whitespace-nowrap">
+            <button form="form-{{ u.id }}" class="text-brand-600 hover:underline mr-3">Salvar</button>
+            {% if u.id != current_user.id %}
+            <form method="post" class="inline" onsubmit="return confirm('Remover {{ u.username }}?');">
+              <input type="hidden" name="action" value="delete">
+              <input type="hidden" name="user_id" value="{{ u.id }}">
+              <button class="text-rose-600 hover:underline">Remover</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

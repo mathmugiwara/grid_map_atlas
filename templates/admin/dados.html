@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Dados (Admin){% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold">Dados</h1>
+    <p class="text-slate-500 text-sm">Todos os pontos de todos os projetos (abertos e encerrados).</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="{{ url_for('admin_export_csv') }}"
+       class="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium">Baixar CSV</a>
+    <a href="{{ url_for('admin_export_fotos') }}"
+       class="px-4 py-2 rounded-lg border border-slate-300 hover:bg-slate-50 text-sm font-medium">Baixar fotos (.zip)</a>
+  </div>
+</div>
+
+<div class="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-50 text-slate-500 text-left">
+      <tr>
+        <th class="px-4 py-3 font-medium">Projeto</th>
+        <th class="px-4 py-3 font-medium">Região</th>
+        <th class="px-4 py-3 font-medium">Status</th>
+        <th class="px-4 py-3 font-medium">Latitude</th>
+        <th class="px-4 py-3 font-medium">Longitude</th>
+        <th class="px-4 py-3 font-medium">Observações</th>
+        <th class="px-4 py-3 font-medium">Fotos</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100">
+      {% for l in linhas %}
+      <tr class="hover:bg-slate-50">
+        <td class="px-4 py-3 font-medium">{{ l.numero }}</td>
+        <td class="px-4 py-3">{{ l.regiao }}</td>
+        <td class="px-4 py-3">{{ l.status }}</td>
+        <td class="px-4 py-3">{{ '%.6f'|format(l.latitude) }}</td>
+        <td class="px-4 py-3">{{ '%.6f'|format(l.longitude) }}</td>
+        <td class="px-4 py-3 max-w-xs truncate" title="{{ l.observacoes }}">{{ l.observacoes }}</td>
+        <td class="px-4 py-3 text-slate-500">{{ l.fotos }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="px-4 py-10 text-center text-slate-400">Nenhum dado disponível.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
